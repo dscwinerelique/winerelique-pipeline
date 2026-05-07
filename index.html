@@ -1018,95 +1018,115 @@ function exportCSV() {
   a.click();
 }
 
-// ─── LOCALSTORAGE PERSISTENCE ─────────────────────────────────────────────────
-const STORAGE_KEY = 'wr_pipeline_v1';
+// ─── GOOGLE SHEETS PERSISTENCE ───────────────────────────────────────────────
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbySlsasiMSC27h7Sv8Fd6sYJ59kYnNfhiOnYzxvLgTJMDBzG4Hu00qJMYLYPFbSNdejzA/exec';
+let saveTimeout = null;
+let isSaving = false;
 
-function save() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(vendors)); } catch(e) {}
-}
-
-function loadSaved() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const saved = JSON.parse(raw);
-      if (Array.isArray(saved) && saved.length > 0) {
-        vendors = saved;
-        showToast('Pipeline loaded — ' + saved.length + ' vendors');
-      }
-    }
-  } catch(e) {}
-}
-
-function resetData() {
-  if (!confirm('Reset all data back to the original pre-loaded pipeline? This cannot be undone.')) return;
-  localStorage.removeItem(STORAGE_KEY);
-  location.reload();
-}
-
-// Auto-save wrapper — patches all mutating functions
-const _updateField = updateField;
-updateField = function(id, key, val) { _updateField(id, key, val); save(); };
-
-const _updateStatus = updateStatus;
-updateStatus = function(id, status) { _updateStatus(id, status); save(); };
-
-const _setStage = setStage;
-setStage = function(id, stage) { _setStage(id, stage); save(); };
-
-const _toggleCheck = toggleCheck;
-toggleCheck = function(id, idx) { _toggleCheck(id, idx); save(); };
-
-const _logActivity = logActivity;
-logActivity = function(id) { _logActivity(id); save(); };
-
-const _addVendor = addVendor;
-addVendor = function() { _addVendor(); save(); };
-
-const _deleteVendor = deleteVendor;
-deleteVendor = function(id) { _deleteVendor(id); save(); };
-
-// Toast notification
-function showToast(msg) {
+function showToast(msg, color) {
   const t = document.createElement('div');
-  t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#1e1a16;border:1px solid rgba(201,168,76,0.3);color:#c9a84c;padding:10px 18px;border-radius:8px;font-size:13px;font-family:Outfit,sans-serif;z-index:999;animation:fadeIn 0.2s ease';
-  t.textContent = '✓ ' + msg;
+  t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#5F244E;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-family:Poppins,sans-serif;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.15)';
+  t.textContent = msg;
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 2500);
 }
 
-// Patch save into header
+function setIndicator(msg, color) {
+  const ind = document.getElementById('save-indicator');
+  if (ind) { ind.textContent = msg; ind.style.color = color || 'var(--text2)'; }
+}
+
+async function saveToSheets() {
+  if (isSaving) return;
+  isSaving = true;
+  setIndicator('● saving...', '#d4945a');
+  try {
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'save', vendors }),
+      headers: { 'Content-Type': 'text/plain' }
+    });
+    setIndicator('● saved', '#27ae60');
+    setTimeout(() => setIndicator('● synced', 'var(--text3)'), 2000);
+  } catch(e) {
+    setIndicator('● offline', '#c0392b');
+    localStorage.setItem('wr_pipeline_backup', JSON.stringify(vendors));
+  }
+  isSaving = false;
+}
+
+function save() {
+  localStorage.setItem('wr_pipeline_backup', JSON.stringify(vendors));
+  clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(saveToSheets, 1000);
+}
+
+async function loadSaved() {
+  setIndicator('● loading...', '#2980b9');
+  try {
+    const res = await fetch(SCRIPT_URL + '?action=load');
+    const data = await res.json();
+    if (Array.isArray(data) && data.length > 0) {
+      vendors = data;
+      setIndicator('● synced', 'var(--text3)');
+      showToast('✓ Pipeline loaded — ' + data.length + ' vendors');
+      renderSidebar();
+      return;
+    }
+  } catch(e) {
+    const backup = localStorage.getItem('wr_pipeline_backup');
+    if (backup) {
+      try { 
+        vendors = JSON.parse(backup); 
+        showToast('⚠ Offline — showing local backup');
+      } catch(e2) {}
+    }
+  }
+  setIndicator('● ready', 'var(--text3)');
+  renderSidebar();
+}
+
+function resetData() {
+  if (!confirm('Reset all data back to the original pre-loaded pipeline? This cannot be undone.')) return;
+  localStorage.removeItem('wr_pipeline_backup');
+  location.reload();
+}
+
+// Auto-save wrapper
+const _updateField = updateField;
+updateField = function(id, key, val) { _updateField(id, key, val); save(); };
+const _updateStatus = updateStatus;
+updateStatus = function(id, status) { _updateStatus(id, status); save(); };
+const _setStage = setStage;
+setStage = function(id, stage) { _setStage(id, stage); save(); };
+const _toggleCheck = toggleCheck;
+toggleCheck = function(id, idx) { _toggleCheck(id, idx); save(); };
+const _logActivity = logActivity;
+logActivity = function(id) { _logActivity(id); save(); };
+const _addVendor = addVendor;
+addVendor = function() { _addVendor(); save(); };
+const _deleteVendor = deleteVendor;
+deleteVendor = function(id) { _deleteVendor(id); save(); };
+
 function patchHeader() {
   const actions = document.querySelector('.header-actions');
   if (!actions) return;
   const resetBtn = document.createElement('button');
   resetBtn.className = 'btn';
-  resetBtn.style.color = 'var(--text3)';
+  resetBtn.style.cssText = 'color:rgba(255,255,255,0.5);border-color:rgba(255,255,255,0.2)';
   resetBtn.textContent = '↺ Reset';
-  resetBtn.title = 'Reset to original data';
   resetBtn.onclick = resetData;
   actions.insertBefore(resetBtn, actions.firstChild);
-
-  // Save indicator
   const indicator = document.createElement('span');
   indicator.id = 'save-indicator';
-  indicator.style.cssText = 'font-size:11px;color:var(--text3);font-family:DM Mono,monospace;padding:0 4px';
-  indicator.textContent = '● saved';
+  indicator.style.cssText = 'font-size:11px;color:rgba(255,255,255,0.5);font-family:DM Mono,monospace;padding:0 4px';
+  indicator.textContent = '● loading...';
   actions.insertBefore(indicator, actions.firstChild);
 }
 
-// Override save to show indicator
-const _save = save;
-save = function() {
-  _save();
-  const ind = document.getElementById('save-indicator');
-  if (ind) { ind.textContent = '● saved'; ind.style.color = 'var(--green)'; setTimeout(() => { ind.style.color = 'var(--text3)'; }, 1500); }
-};
-
 // ─── INIT ─────────────────────────────────────────────────────────────────────
-loadSaved();
-renderSidebar();
 patchHeader();
+loadSaved();
 </script>
 </body>
 </html>
