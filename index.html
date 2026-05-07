@@ -1023,9 +1023,9 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbySlsasiMSC27h7Sv8Fd
 let saveTimeout = null;
 let isSaving = false;
 
-function showToast(msg, color) {
+function showToast(msg) {
   const t = document.createElement('div');
-  t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#5F244E;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-family:Poppins,sans-serif;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.15)';
+  t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#5F244E;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-family:Poppins,sans-serif;z-index:9999;';
   t.textContent = msg;
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 2500);
@@ -1036,54 +1036,61 @@ function setIndicator(msg, color) {
   if (ind) { ind.textContent = msg; ind.style.color = color || 'var(--text2)'; }
 }
 
-async function saveToSheets() {
+function jsonp(url, callback) {
+  const name = 'cb_' + Date.now();
+  const script = document.createElement('script');
+  window[name] = function(data) {
+    delete window[name];
+    document.body.removeChild(script);
+    callback(null, data);
+  };
+  script.onerror = function() {
+    delete window[name];
+    document.body.removeChild(script);
+    callback(new Error('failed'));
+  };
+  script.src = url + '&callback=' + name;
+  document.body.appendChild(script);
+}
+
+function saveToSheets() {
   if (isSaving) return;
   isSaving = true;
   setIndicator('● saving...', '#d4945a');
-  try {
-    await fetch(SCRIPT_URL, {
-      method: 'POST',
-      body: JSON.stringify({ action: 'save', vendors }),
-      headers: { 'Content-Type': 'text/plain' }
-    });
-    setIndicator('● saved', '#27ae60');
-    setTimeout(() => setIndicator('● synced', 'var(--text3)'), 2000);
-  } catch(e) {
-    setIndicator('● offline', '#c0392b');
-    localStorage.setItem('wr_pipeline_backup', JSON.stringify(vendors));
-  }
-  isSaving = false;
+  const data = encodeURIComponent(JSON.stringify({action:'save', vendors}));
+  jsonp(SCRIPT_URL + '?action=save&data=' + data, function(err) {
+    isSaving = false;
+    if (err) {
+      setIndicator('● error', '#c0392b');
+    } else {
+      setIndicator('● saved', '#27ae60');
+      setTimeout(() => setIndicator('● synced', 'rgba(95,36,78,0.5)'), 2000);
+    }
+  });
 }
 
 function save() {
   localStorage.setItem('wr_pipeline_backup', JSON.stringify(vendors));
   clearTimeout(saveTimeout);
-  saveTimeout = setTimeout(saveToSheets, 1000);
+  saveTimeout = setTimeout(saveToSheets, 1500);
 }
 
-async function loadSaved() {
+function loadSaved() {
   setIndicator('● loading...', '#2980b9');
-  try {
-    const res = await fetch(SCRIPT_URL + '?action=load');
-    const data = await res.json();
-    if (Array.isArray(data) && data.length > 0) {
+  const backup = localStorage.getItem('wr_pipeline_backup');
+  jsonp(SCRIPT_URL + '?action=load', function(err, data) {
+    if (!err && Array.isArray(data) && data.length > 0) {
       vendors = data;
-      setIndicator('● synced', 'var(--text3)');
+      setIndicator('● synced', 'rgba(95,36,78,0.5)');
       showToast('✓ Pipeline loaded — ' + data.length + ' vendors');
-      renderSidebar();
-      return;
+    } else {
+      if (backup) {
+        try { vendors = JSON.parse(backup); showToast('● loaded from backup'); } catch(e) {}
+      }
+      setIndicator('● ready', 'rgba(95,36,78,0.5)');
     }
-  } catch(e) {
-    const backup = localStorage.getItem('wr_pipeline_backup');
-    if (backup) {
-      try { 
-        vendors = JSON.parse(backup); 
-        showToast('⚠ Offline — showing local backup');
-      } catch(e2) {}
-    }
-  }
-  setIndicator('● ready', 'var(--text3)');
-  renderSidebar();
+    renderSidebar();
+  });
 }
 
 function resetData() {
