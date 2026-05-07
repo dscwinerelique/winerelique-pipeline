@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WineRelique — Vendor Pipeline</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0e0c0a;
+  --surface: #161310;
+  --surface2: #1e1a16;
+  --surface3: #252017;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --gold: #c9a84c;
+  --gold-light: #e8c97a;
+  --gold-dim: rgba(201,168,76,0.15);
+  --gold-dim2: rgba(201,168,76,0.08);
+  --text: #f0ebe3;
+  --text2: #9a9288;
+  --text3: #5a5248;
+  --red: #e05252;
+  --red-dim: rgba(224,82,82,0.12);
+  --green: #5db87a;
+  --green-dim: rgba(93,184,122,0.12);
+  --blue: #5a9fd4;
+  --blue-dim: rgba(90,159,212,0.12);
+  --amber: #d4945a;
+  --amber-dim: rgba(212,148,90,0.12);
+  --purple: #9b7fd4;
+  --purple-dim: rgba(155,127,212,0.12);
+  --radius: 8px;
+  --radius-lg: 12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* HEADER */
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header-brand {
+  font-family: 'DM Serif Display', serif;
+  font-size: 18px;
+  color: var(--gold);
+  letter-spacing: 0.02em;
+}
+.header-brand span { color: var(--text2); font-size: 13px; font-family: 'Outfit', sans-serif; margin-left: 10px; font-weight: 300; }
+.header-actions { display: flex; gap: 10px; align-items: center; }
+
+/* BUTTONS */
+.btn {
+  padding: 7px 16px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--radius);
+  cursor: pointer;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text2);
+  transition: all 0.15s;
+}
+.btn:hover { background: var(--surface2); color: var(--text); border-color: var(--border2); }
+.btn-gold {
+  background: var(--gold);
+  color: #0e0c0a;
+  border-color: var(--gold);
+  font-weight: 600;
+}
+.btn-gold:hover { background: var(--gold-light); border-color: var(--gold-light); color: #0e0c0a; }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+.btn-icon { padding: 6px 10px; font-size: 16px; line-height: 1; }
+
+/* LAYOUT */
+.app { display: flex; height: calc(100vh - 60px); }
+
+/* SIDEBAR */
+.sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.sidebar-search {
+  padding: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-search input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  color: var(--text);
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  outline: none;
+}
+.sidebar-search input::placeholder { color: var(--text3); }
+.sidebar-search input:focus { border-color: var(--gold); }
+
+.sidebar-filters {
+  padding: 12px 14px 8px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-filters-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.filter-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 2px;
+  transition: background 0.1s;
+}
+.filter-chip:hover { background: var(--surface2); }
+.filter-chip.active { background: var(--gold-dim); }
+.filter-chip-left { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.filter-chip-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.filter-chip-count { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; }
+.filter-chip.active .filter-chip-count { color: var(--gold); }
+
+.sidebar-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 8px;
+}
+.sidebar-list::-webkit-scrollbar { width: 4px; }
+.sidebar-list::-webkit-scrollbar-track { background: transparent; }
+.sidebar-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+.vendor-item {
+  padding: 10px 10px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  margin-bottom: 2px;
+  border: 1px solid transparent;
+  transition: all 0.1s;
+}
+.vendor-item:hover { background: var(--surface2); }
+.vendor-item.active { background: var(--gold-dim); border-color: rgba(201,168,76,0.25); }
+.vendor-item-name { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.3; margin-bottom: 3px; }
+.vendor-item-meta { display: flex; align-items: center; gap: 6px; }
+.vendor-item-locs { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; }
+
+/* STATUS PILLS */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.pill-live { background: var(--green-dim); color: var(--green); }
+.pill-hot { background: var(--gold-dim); color: var(--gold); }
+.pill-progressing { background: var(--blue-dim); color: var(--blue); }
+.pill-contacted { background: var(--amber-dim); color: var(--amber); }
+.pill-nocontact { background: rgba(255,255,255,0.05); color: var(--text3); }
+.pill-hold { background: var(--red-dim); color: var(--red); }
+.pill-closed { background: rgba(255,255,255,0.04); color: var(--text3); }
+
+/* MAIN DETAIL */
+.main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px 32px;
+  background: var(--bg);
+}
+.main::-webkit-scrollbar { width: 4px; }
+.main::-webkit-scrollbar-track { background: transparent; }
+.main::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* EMPTY STATE */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text3);
+  gap: 12px;
+}
+.empty-state-icon { font-size: 48px; opacity: 0.3; }
+.empty-state h3 { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--text2); }
+
+/* DETAIL PANEL */
+.detail-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; gap: 16px; }
+.detail-title { font-family: 'DM Serif Display', serif; font-size: 26px; color: var(--text); line-height: 1.2; }
+.detail-subtitle { font-size: 13px; color: var(--text2); margin-top: 4px; }
+.detail-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+/* STATS ROW */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+}
+.stat-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+.stat-val { font-size: 22px; font-weight: 600; color: var(--text); font-family: 'DM Mono', monospace; }
+.stat-sub { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+/* SECTIONS */
+.section { margin-bottom: 24px; }
+.section-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* FIELDS GRID */
+.fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.fields-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field-label { font-size: 11px; color: var(--text3); font-weight: 500; }
+.field-val {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 9px 12px;
+  font-size: 13px;
+  color: var(--text);
+  font-family: 'Outfit', sans-serif;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.15s;
+}
+.field-val:focus { border-color: var(--gold); }
+.field-val::placeholder { color: var(--text3); }
+select.field-val { cursor: pointer; }
+select.field-val option { background: var(--surface2); }
+textarea.field-val { resize: vertical; min-height: 80px; line-height: 1.5; }
+
+/* STAGE PIPELINE */
+.stage-track {
+  display: flex;
+  gap: 0;
+  margin-bottom: 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.stage-step {
+  flex: 1;
+  padding: 12px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  border-right: 1px solid var(--border);
+  position: relative;
+}
+.stage-step:last-child { border-right: none; }
+.stage-step:hover { background: var(--surface2); }
+.stage-step.active { background: var(--gold-dim); }
+.stage-step.active .stage-num { color: var(--gold); }
+.stage-step.active .stage-label { color: var(--gold-light); }
+.stage-step.completed { background: rgba(93,184,122,0.06); }
+.stage-step.completed .stage-num { color: var(--green); }
+.stage-num { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text3); margin-bottom: 3px; }
+.stage-label { font-size: 11px; font-weight: 500; color: var(--text2); }
+
+/* ACTIVITY LOG */
+.activity-log { display: flex; flex-direction: column; gap: 0; }
+.activity-entry {
+  display: flex;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.activity-entry:last-child { border-bottom: none; }
+.activity-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gold);
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+.activity-content { flex: 1; }
+.activity-text { font-size: 13px; color: var(--text); }
+.activity-date { font-size: 11px; color: var(--text3); margin-top: 2px; font-family: 'DM Mono', monospace; }
+.activity-input-row { display: flex; gap: 8px; margin-top: 8px; }
+.activity-input {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  color: var(--text);
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  outline: none;
+}
+.activity-input:focus { border-color: var(--gold); }
+
+/* CHECKLIST */
+.checklist { display: flex; flex-direction: column; gap: 6px; }
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.1s;
+}
+.check-item:hover { border-color: var(--border2); }
+.check-item.done { opacity: 0.5; }
+.check-item.done .check-text { text-decoration: line-through; color: var(--text3); }
+.check-box {
+  width: 16px; height: 16px;
+  border: 1.5px solid var(--border2);
+  border-radius: 4px;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.1s;
+  font-size: 10px;
+}
+.check-item.done .check-box { background: var(--green); border-color: var(--green); color: #fff; }
+.check-text { font-size: 13px; color: var(--text); }
+
+/* KANBAN VIEW */
+.kanban { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 8px; }
+.kanban::-webkit-scrollbar { height: 4px; }
+.kanban::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+.kanban-col { flex-shrink: 0; width: 220px; }
+.kanban-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px; padding: 0 2px;
+}
+.kanban-title { font-size: 12px; font-weight: 600; }
+.kanban-count { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; }
+.kanban-cards { display: flex; flex-direction: column; gap: 8px; min-height: 80px; }
+.kanban-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.kanban-card:hover { border-color: var(--border2); transform: translateY(-1px); }
+.kanban-card-name { font-size: 12px; font-weight: 500; margin-bottom: 4px; }
+.kanban-card-meta { font-size: 11px; color: var(--text3); }
+.kanban-card-locs { font-family: 'DM Mono', monospace; }
+
+/* OVERVIEW STATS */
+.overview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 24px; }
+.overview-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+}
+.overview-card-num { font-size: 32px; font-weight: 600; font-family: 'DM Mono', monospace; margin-bottom: 2px; }
+.overview-card-label { font-size: 12px; color: var(--text3); }
+.overview-card-sub { font-size: 12px; color: var(--text2); margin-top: 6px; }
+
+/* VIEW TOGGLE */
+.view-toggle { display: flex; gap: 4px; }
+.view-btn {
+  padding: 5px 12px; font-size: 12px; border: 1px solid var(--border);
+  border-radius: 6px; cursor: pointer; background: transparent; color: var(--text3);
+  transition: all 0.1s;
+}
+.view-btn.active { background: var(--surface2); color: var(--text); border-color: var(--border2); }
+
+/* ADD VENDOR MODAL */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  width: 560px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.modal-title { font-family: 'DM Serif Display', serif; font-size: 20px; margin-bottom: 20px; color: var(--gold); }
+.modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+
+/* PRIORITY BADGE */
+.priority { display: inline-flex; align-items: center; gap: 4px; }
+
+/* SCROLL STYLE */
+.main::-webkit-scrollbar { width: 4px; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+.detail-panel { animation: fadeIn 0.15s ease; }
+
+.gold-line { width: 40px; height: 2px; background: var(--gold); margin-bottom: 20px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-brand">
+    WineRelique <span>Vendor Pipeline</span>
+  </div>
+  <div class="header-actions">
+    <div class="view-toggle">
+      <button class="view-btn active" onclick="setView('detail',this)">Detail</button>
+      <button class="view-btn" onclick="setView('kanban',this)">Kanban</button>
+      <button class="view-btn" onclick="setView('overview',this)">Overview</button>
+    </div>
+    <button class="btn" onclick="exportCSV()">⬇ Export</button>
+    <button class="btn btn-gold" onclick="openAddModal()">+ Add Vendor</button>
+  </div>
+</header>
+
+<div class="app">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-search">
+    <input type="text" id="search-input" placeholder="Search vendors..." oninput="filterList()">
+  </div>
+  <div class="sidebar-filters">
+    <div class="sidebar-filters-label">Filter by stage</div>
+    <div class="filter-chip active" onclick="setFilter('all',this)">
+      <div class="filter-chip-left"><div class="filter-chip-dot" style="background:#9a9288"></div>All vendors</div>
+      <div class="filter-chip-count" id="count-all">57</div>
+    </div>
+    <div class="filter-chip" onclick="setFilter('live',this)">
+      <div class="filter-chip-left"><div class="filter-chip-dot" style="background:#5db87a"></div>Live</div>
+      <div class="filter-chip-count" id="count-live">4</div>
+    </div>
+    <div class="filter-chip" onclick="setFilter('hot',this)">
+      <div class="filter-chip-left"><div class="filter-chip-dot" style="background:#c9a84c"></div>Hot — close now</div>
+      <div class="filter-chip-count" id="count-hot">6</div>
+    </div>
+    <div class="filter-chip" onclick="setFilter('progressing',this)">
+      <div class="filter-chip-left"><div class="filter-chip-dot" style="background:#5a9fd4"></div>Progressing</div>
+      <div class="filter-chip-count" id="count-progressing">18</div>
+    </div>
+    <div class="filter-chip" onclick="setFilter('contacted',this)">
+      <div class="filter-chip-left"><div class="filter-chip-dot" style="background:#d4945a"></div>Contacted</div>
+      <div class="filter-chip-count" id="count-contacted">22</div>
+    </div>
+    <div class="filter-chip" onclick="setFilter('nocontact',this)">
+      <div class="filter-chip-left"><div class="filter-chip-dot" style="background:#5a5248"></div>No contact</div>
+      <div class="filter-chip-count" id="count-nocontact">4</div>
+    </div>
+    <div class="filter-chip" onclick="setFilter('hold',this)">
+      <div class="filter-chip-left"><div class="filter-chip-dot" style="background:#e05252"></div>On hold</div>
+      <div class="filter-chip-count" id="count-hold">1</div>
+    </div>
+    <div class="filter-chip" onclick="setFilter('closed',this)">
+      <div class="filter-chip-left"><div class="filter-chip-dot" style="background:#333"></div>Dead / closed</div>
+      <div class="filter-chip-count" id="count-closed">2</div>
+    </div>
+  </div>
+  <div class="sidebar-list" id="vendor-list"></div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main" id="main-panel">
+  <div class="empty-state" id="empty-state">
+    <div class="empty-state-icon">🍷</div>
+    <h3>Select a vendor to manage</h3>
+    <p style="font-size:13px;color:var(--text3)">Or switch to Kanban / Overview mode</p>
+  </div>
+  <div id="detail-panel" style="display:none"></div>
+  <div id="kanban-panel" style="display:none"></div>
+  <div id="overview-panel" style="display:none"></div>
+</main>
+
+</div>
+
+<!-- ADD VENDOR MODAL -->
+<div class="modal-overlay" id="add-modal">
+  <div class="modal">
+    <div class="modal-title">Add new vendor</div>
+    <div class="fields-grid" style="margin-bottom:12px">
+      <div class="field"><div class="field-label">Vendor / Business name</div><input class="field-val" id="new-name" placeholder="e.g. Acme Cellars"></div>
+      <div class="field"><div class="field-label">Locations</div><input class="field-val" id="new-locs" type="number" placeholder="1"></div>
+      <div class="field"><div class="field-label">Contact name</div><input class="field-val" id="new-contact" placeholder="Full name"></div>
+      <div class="field"><div class="field-label">Phone</div><input class="field-val" id="new-phone" placeholder="04xx xxx xxx"></div>
+      <div class="field"><div class="field-label">Email</div><input class="field-val" id="new-email" placeholder="contact@domain.com.au"></div>
+      <div class="field"><div class="field-label">Type</div>
+        <select class="field-val" id="new-type">
+          <option>Liquor retailer</option><option>Hotel / pub group</option><option>Winery</option>
+          <option>Wine storage</option><option>Resort / hospitality</option><option>Private collector</option>
+          <option>Members club</option><option>Industry body</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="field" style="margin-bottom:12px">
+      <div class="field-label">Initial notes</div>
+      <textarea class="field-val" id="new-notes" placeholder="Why are they a good fit? Any context..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeAddModal()">Cancel</button>
+      <button class="btn btn-gold" onclick="addVendor()">Add to pipeline</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── DATA ────────────────────────────────────────────────────────────────────
+const STAGES = ['No contact','Contacted','Meeting booked','Agreement in progress','Agreement reached','Onboarding','Live'];
+
+const ACQUISITION_CHECKLIST = [
+  'Initial contact made (SMS / email / call)',
+  'Decision maker identified',
+  'Meeting / call booked',
+  'WineRelique value proposition presented',
+  'Objections handled',
+  'Agreement reached',
+  'Store details & product list received',
+  'Platform account set up',
+  'POS / feed connection confirmed',
+  'Product images & descriptions loaded',
+  'First listing live',
+  'First sale achieved'
+];
+
+let vendors = [
+  {id:1,name:'Paul Heilman',locs:3,contact:'Paul',phone:'0438226669',email:'',type:'Liquor retailer',status:'live',stage:6,notes:'Live from September — already selling',next:'Monitor first sales and support activation',activity:[{text:'Activated and already selling',date:'Sep 2025'}],checks:[1,1,1,1,1,1,1,1,1,1,1,0]},
+  {id:2,name:'Olinda Cellars',locs:1,contact:'Ross',phone:'97510999',email:'ross@olindacellars.com.au',type:'Liquor retailer',status:'live',stage:6,notes:'Successfully onboarded — live since September',next:'Monitor activity and support upsell',activity:[{text:'Onboarded — Ross active on platform since September',date:'Sep 2025'}],checks:[1,1,1,1,1,1,1,1,1,1,1,0]},
+  {id:3,name:'Red Retail Group',locs:4,contact:'Phil Whitehead / Tom Hayles',phone:'0401661847 / 0432327135',email:'',type:'Liquor retailer',status:'live',stage:5,notes:'1 store live as of September — complete remaining connection and sign agreement',next:'Complete POS connection for remaining 3 stores and finalise agreement',activity:[{text:'1 liquor store live as of September',date:'Sep 2025'}],checks:[1,1,1,1,1,1,1,0,0,1,1,0]},
+  {id:4,name:'Laundy Group',locs:16,contact:'Shane Spittle',phone:'0434945649',email:'shane.spittles@laundy.com.au',type:'Hotel / pub group',status:'live',stage:5,notes:'5 stores going live — update images and train venues',next:'Update images, train remaining venues, go live all 5',activity:[{text:'5 stores going live October — all venues set up',date:'Oct 2025'}],checks:[1,1,1,1,1,1,1,1,0,0,0,0]},
+  {id:5,name:"Thomas Ritchie's",locs:15,contact:'Karl and Lisa',phone:'',email:'lisa.mandragona@ritchies.com.au',type:'Liquor retailer',status:'hot',stage:4,notes:'Agreement reached to launch 9 new stores',next:'Activate product lists, train staff, go live store by store — 9 stores info received',activity:[{text:'Agreement reached for 9 new stores',date:'Oct 2025'},{text:'9 stores info received — setting up and onboarding',date:'Oct 2025'}],checks:[1,1,1,1,1,1,1,0,0,0,0,0]},
+  {id:6,name:'Kalis Group - Tasmania',locs:14,contact:'Alexia Kalis',phone:'',email:'A.kalis@kalisgroup.com.au',type:'Hotel / pub group',status:'hot',stage:4,notes:'Agreement reached — 5 Porters stores to go live. H&L connection to set up.',next:'H&L POS integration — agree which 5 venues and set up complete plan',activity:[{text:'Proposal accepted 6th October — agreement reached',date:'Oct 2025'},{text:'5 stores to go live October — H&L connection being configured',date:'Oct 2025'}],checks:[1,1,1,1,1,1,0,0,0,0,0,0]},
+  {id:7,name:'Reddrop Group',locs:9,contact:'Leigh Northway / Tammy',phone:'0402812106',email:'',type:'Liquor retailer',status:'hot',stage:3,notes:'Agreement to roll out Ivanhoe then targeted rollout from there',next:'Collect Ivanhoe file, set up virtual head office, send confirmation to Leigh and Tammy',activity:[{text:'Agreement to proceed — Ivanhoe first',date:'Oct 2025'}],checks:[1,1,1,1,1,1,0,0,0,0,0,0]},
+  {id:8,name:'H & L Point of Sale',locs:2400,contact:'H&L team',phone:'',email:'',type:'Other',status:'hot',stage:3,notes:'NDA signed — agreement reached. Integration setup underway.',next:'Set up H&L integration next steps — 2,400 venue potential',activity:[{text:'NDA signed and agreed',date:'Oct 2025'},{text:'Integration setup initiated',date:'Oct 2025'}],checks:[1,1,1,1,1,1,0,0,0,0,0,0]},
+  {id:9,name:'Steven Shoobridge — Star Group',locs:60,contact:'Steven Shoobridge',phone:'',email:'steven@shoobridgegroup.com.au',type:'Hotel / pub group',status:'hot',stage:0,notes:"QLD's largest independent pub & liquor group — 23 venues, 60+ retail outlets",next:"First contact needed — premium opportunity, personalise outreach to Star Group's scale",activity:[],checks:[0,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:10,name:'Darren Rathbone — Rathbone Wine Group',locs:3,contact:'Darren Rathbone',phone:'',email:'darren@rathbonewinegroup.com',type:'Winery',status:'hot',stage:0,notes:'CEO — Yering Station, Xanadu, Mount Langi Ghiran. Premium cool-climate estates.',next:'First contact — position WineRelique as national collector-grade distribution channel',activity:[],checks:[0,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:11,name:'Thirsty Camel',locs:10,contact:'Trent Arbaci',phone:'0412155061',email:'',type:'Liquor retailer',status:'progressing',stage:2,notes:'6 venues already listed — formalise agreement for remaining',next:'List remaining venues, formalise agreement, look at integrating Top Drops for major selling period',activity:[{text:'6 venues listed',date:'Oct 2025'}],checks:[1,1,1,1,0,0,0,0,0,0,0,0]},
+  {id:12,name:'Sip N Save — Hurley Group',locs:7,contact:'Tony & Peter Hurley',phone:'0411750203 / 0413750955',email:'',type:'Liquor retailer',status:'progressing',stage:1,notes:'Very keen — Tony away until Oct 1st',next:'Re-engage and accelerate — text sent, follow up call now',activity:[{text:'Very keen — Tony away until Oct 1, text sent',date:'Sep 2025'}],checks:[1,1,0,0,0,0,0,0,0,0,0,0]},
+  {id:13,name:'Porters St Ives / Hornsby / Wahroonga',locs:3,contact:'—',phone:'',email:'',type:'Liquor retailer',status:'progressing',stage:2,notes:'POS setup needed — St Ives live, Hornsby and Wahroonga pending',next:'Check if MyPOS can host via CSV — complete St Ives then roll to other 2',activity:[{text:'St Ives live — POS connection needed for others',date:'Oct 2025'}],checks:[1,1,1,0,0,0,0,0,0,0,0,0]},
+  {id:14,name:'Chambers Cellars',locs:30,contact:'Steve & Josh Chambers',phone:'0438344355 (Steve) / 0438758220 (Josh)',email:'steven@chamberscellars.com.au',type:'Liquor retailer',status:'progressing',stage:1,notes:'Initial SMS sent — send meeting request note for Steve and Josh',next:'Send meeting request — note for Steve and Josh',activity:[{text:'Initial SMS sent to Steve and Josh',date:'Oct 2025'}],checks:[1,1,0,0,0,0,0,0,0,0,0,0]},
+  {id:15,name:'Cambridge Cellars',locs:1,contact:'Fred & Joshua',phone:'0395275676',email:'',type:'Liquor retailer',status:'progressing',stage:1,notes:'Contact made — need to get meeting with Joshua',next:'Call Fred and Joshua — book meeting this week',activity:[{text:'Contact made',date:'Oct 2025'}],checks:[1,1,0,0,0,0,0,0,0,0,0,0]},
+  {id:16,name:'Fassina',locs:8,contact:'Ross Fassina',phone:'0882957707',email:'ross@fassina.com.au',type:'Liquor retailer',status:'progressing',stage:1,notes:'All information sent — needs follow up',next:'Follow up with Ross again — info sent, no response yet',activity:[{text:'All WR info sent to Ross Fassina',date:'Oct 2025'}],checks:[1,1,0,0,0,0,0,0,0,0,0,0]},
+  {id:17,name:'East End Cellars',locs:3,contact:'Michael Andrewartha',phone:'0882325300',email:'',type:'Liquor retailer',status:'progressing',stage:1,notes:'Email + LinkedIn sent',next:'Follow up call — email and LinkedIn message sent',activity:[{text:'Email sent and LinkedIn message sent',date:'Oct 2025'}],checks:[1,1,0,0,0,0,0,0,0,0,0,0]},
+  {id:18,name:'Canterbury Wines',locs:1,contact:'Nick',phone:'0403020439',email:'',type:'Liquor retailer',status:'progressing',stage:1,notes:'Text sent — meeting request with Nick',next:'Follow-up call to secure agreement',activity:[{text:'Text sent asking for meeting with Nick',date:'Oct 2025'}],checks:[1,1,0,0,0,0,0,0,0,0,0,0]},
+  {id:19,name:'Jim Murphys Online',locs:2,contact:'Adrien Murphy',phone:'0412085680',email:'jcellars@bigpond.net.au',type:'Liquor retailer',status:'progressing',stage:1,notes:'Text sent — book meeting with Adrien',next:'Book a meeting with Adrien as follow up',activity:[{text:'Text sent to Adrien',date:'Oct 2025'}],checks:[1,1,0,0,0,0,0,0,0,0,0,0]},
+  {id:20,name:'Matthews Liquor Stores',locs:8,contact:'Trung',phone:'0433218601',email:'',type:'Liquor retailer',status:'progressing',stage:1,notes:'SMS and email sent — text and phone follow-up required',next:'Text and phone follow up — chase this week',activity:[{text:'SMS and email sent',date:'Oct 2025'}],checks:[1,1,0,0,0,0,0,0,0,0,0,0]},
+  {id:21,name:'Grovedale / Torquay / Barwon Heads',locs:3,contact:'Ross',phone:'0417395729',email:'',type:'Liquor retailer',status:'progressing',stage:1,notes:'Follow up text sent Aug 14 — chase now',next:'Follow up call — overdue',activity:[{text:'SMS sent Aug 14',date:'Aug 2025'}],checks:[1,1,0,0,0,0,0,0,0,0,0,0]},
+  {id:22,name:'Taylors Lakes Hotel',locs:1,contact:'Con / Monty',phone:'0417353937',email:'',type:'Hotel / pub group',status:'progressing',stage:1,notes:'Initial SMS sent — call Monty to arrange discussion',next:'Call Monty next week to arrange discussion',activity:[{text:'Initial SMS sent',date:'Oct 2025'}],checks:[1,1,0,0,0,0,0,0,0,0,0,0]},
+  {id:23,name:"Castello's Venues",locs:1,contact:'Tricia',phone:'0427649744',email:'',type:'Hotel / pub group',status:'progressing',stage:1,notes:'Follow up text sent Aug 14 — chase',next:'Follow up — text sent, call needed now',activity:[{text:'Follow up text sent Aug 14',date:'Aug 2025'}],checks:[1,1,0,0,0,0,0,0,0,0,0,0]},
+  {id:24,name:'Dorset Gardens',locs:1,contact:'Joe',phone:'0411142018',email:'',type:'Hotel / pub group',status:'progressing',stage:2,notes:'Meeting booked with Joe',next:'Attend meeting — get email and progress agreement',activity:[{text:'Meeting booked with Joe',date:'Oct 2025'}],checks:[1,1,1,0,0,0,0,0,0,0,0,0]},
+  {id:25,name:'Dave Shore — W. Short Hotel Group',locs:9,contact:'Dave Shore',phone:'0404612084',email:'dshort@wshg.com.au',type:'Hotel / pub group',status:'progressing',stage:0,notes:'9 iconic NSW venues — The Glenmore, Australian Heritage Hotel in The Rocks + regional',next:'First contact — premium Sydney pub group since 1969',activity:[],checks:[0,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:26,name:'Thomas Donegan — Voyager Estate',locs:1,contact:'Thomas Donegan',phone:'0435835836',email:'tdonegan@voyagerestate.com.au',type:'Winery',status:'progressing',stage:0,notes:'5-star Halliday, certified organic Margaret River estate — premium collector fit',next:'First contact — position as national exposure for collector-grade Margaret River wine',activity:[],checks:[0,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:27,name:'David Canny Ballarat',locs:1,contact:'David Canny',phone:'0417397393',email:'',type:'Other',status:'progressing',stage:1,notes:'Contact made — no bottle shops but introduced WR through AHA',next:'Leverage AHA introduction — identify other AHA contacts',activity:[{text:'Contact made — introduced via AHA',date:'Oct 2025'}],checks:[1,1,0,0,0,0,0,0,0,0,0,0]},
+  {id:28,name:'BlackHeart and Sparrows',locs:13,contact:'—',phone:'0390819372',email:'',type:'Liquor retailer',status:'contacted',stage:1,notes:'Follow up email sent',next:'Secure follow-up meeting',activity:[{text:'Follow up email sent',date:'Oct 2025'}],checks:[1,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:29,name:'Kent Street Cellars',locs:1,contact:'—',phone:'',email:'',type:'Liquor retailer',status:'contacted',stage:1,notes:'Contact made — get correct decision maker',next:'Book call with correct decision maker',activity:[{text:'Made contact — getting decision maker',date:'Oct 2025'}],checks:[1,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:30,name:'Melbourne Wine Store',locs:1,contact:'—',phone:'0398208889',email:'',type:'Liquor retailer',status:'contacted',stage:1,notes:'Website contact sent — no reply yet',next:'Follow up call — no reply to website enquiry',activity:[{text:'Contact sent through website',date:'Oct 2025'}],checks:[1,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:31,name:'McCoppins',locs:3,contact:'—',phone:'',email:'',type:'Liquor retailer',status:'contacted',stage:1,notes:'Initial contact done',next:'Follow-up call to progress agreement',activity:[{text:'Initial contact done',date:'Oct 2025'}],checks:[1,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:32,name:'Prince Wine Stores',locs:2,contact:'—',phone:'',email:'',type:'Liquor retailer',status:'contacted',stage:1,notes:'Initial SMS sent',next:'Follow-up call to secure agreement',activity:[{text:'SMS sent',date:'Oct 2025'}],checks:[1,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:33,name:'Spirits of France',locs:1,contact:'—',phone:'',email:'',type:'Liquor retailer',status:'contacted',stage:1,notes:'Initial contact done',next:'Follow-up call',activity:[{text:'Initial contact done',date:'Oct 2025'}],checks:[1,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:34,name:'Casa De Vinos',locs:1,contact:'—',phone:'',email:'',type:'Liquor retailer',status:'contacted',stage:1,notes:'Initial contact done',next:'Follow-up call',activity:[{text:'Initial contact done',date:'Oct 2025'}],checks:[1,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:35,name:'City Wine Shop',locs:1,contact:'—',phone:'',email:'',type:'Liquor retailer',status:'contacted',stage:1,notes:'Initial contact done',next:'Follow-up call',activity:[{text:'Initial contact done',date:'Oct 2025'}],checks:[1,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:36,name:'Commercial Club Albury',locs:1,contact:'—',phone:'',email:'',type:'Hotel / pub group',status:'contacted',stage:1,notes:'Initial contact done',next:'Follow-up call',activity:[{text:'Initial contact done',date:'Oct 2025'}],checks:[1,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:37,name:"Harry's Liquor",locs:10,contact:'—',phone:'',email:'',type:'Liquor retailer',status:'contacted',stage:1,notes:'Initial contact done',next:'Follow-up call',activity:[{text:'Initial contact done',date:'Oct 2025'}],checks:[1,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:38,name:'The Cremorne Hotel SA',locs:1,contact:'—',phone:'',email:'',type:'Hotel / pub group',status:'contacted',stage:1,notes:'Initial contact done',next:'Follow-up call',activity:[{text:'Initial contact done',date:'Oct 2025'}],checks:[1,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:39,name:'Boccaccio Cellars',locs:1,contact:'—',phone:'',email:'',type:'Liquor retailer',status:'contacted',stage:1,notes:'Initial contact done',next:'Follow-up call',activity:[{text:'Initial contact done',date:'Oct 2025'}],checks:[1,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:40,name:'Monacellars',locs:1,contact:'—',phone:'',email:'',type:'Liquor retailer',status:'contacted',stage:1,notes:'Initial contact done',next:'Follow-up call',activity:[{text:'Initial contact done',date:'Oct 2025'}],checks:[1,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:41,name:'WineArk',locs:1,contact:'John Cuff',phone:'0411752545',email:'jcuff@wine-ark.com.au',type:'Wine storage',status:'contacted',stage:1,notes:'Initial contact done — wine storage, collector stock opportunity',next:'Follow-up call with John Cuff',activity:[{text:'Initial contact done',date:'Oct 2025'}],checks:[1,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:42,name:'Camperdown Cellars',locs:1,contact:'—',phone:'',email:'',type:'Liquor retailer',status:'contacted',stage:1,notes:'Initial contact done',next:'Follow-up call',activity:[{text:'Initial contact done',date:'Oct 2025'}],checks:[1,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:43,name:'The Wine Emporium Brisbane',locs:1,contact:'—',phone:'',email:'',type:'Liquor retailer',status:'contacted',stage:1,notes:'Initial contact done',next:'Follow-up call',activity:[{text:'Initial contact done',date:'Oct 2025'}],checks:[1,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:44,name:'Wickmans Wine & Whisky Auctions',locs:1,contact:'—',phone:'',email:'',type:'Liquor retailer',status:'contacted',stage:1,notes:'Initial contact done',next:'Follow-up call',activity:[{text:'Initial contact done',date:'Oct 2025'}],checks:[1,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:45,name:'Sterling Wine Auctions',locs:1,contact:'—',phone:'',email:'',type:'Liquor retailer',status:'contacted',stage:1,notes:'Initial contact done',next:'Follow-up call',activity:[{text:'Initial contact done',date:'Oct 2025'}],checks:[1,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:46,name:'Shamrock Hotel Keyneton',locs:1,contact:'Troy',phone:'0455855350',email:'tdrsaints@myyahoo.com',type:'Hotel / pub group',status:'contacted',stage:1,notes:'Was keen but now going cold — reconnect ASAP',next:'Reconnect ASAP — was keen, going cold',activity:[{text:'Initial contact done — was keen',date:'Sep 2025'},{text:'Going cold — re-engagement needed',date:'Oct 2025'}],checks:[1,1,0,0,0,0,0,0,0,0,0,0]},
+  {id:47,name:'Rob Gough — Settlers Tavern',locs:1,contact:'Rob Gough',phone:'',email:'rob@settlerstavern.com',type:'Hotel / pub group',status:'contacted',stage:1,notes:'Margaret River premium venue — cellar stock likely',next:'Follow-up call to progress',activity:[{text:'Initial contact done',date:'Oct 2025'}],checks:[1,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:48,name:'Shane Bulluss — Brown Brothers',locs:1,contact:'Shane Bulluss',phone:'',email:'s_bulluss@brownbrothers.com.au',type:'Winery',status:'contacted',stage:1,notes:'Major Australian winery — national brand',next:'Follow-up to progress',activity:[{text:'Initial contact done',date:'Oct 2025'}],checks:[1,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:49,name:'Scott Witt — Cellarit Wine & Storage',locs:1,contact:'Scott Witt',phone:'0403118111',email:'scott@cellarit.com',type:'Wine storage',status:'contacted',stage:1,notes:'Wine storage — natural vendor fit',next:'Follow-up call with Scott',activity:[{text:'Initial contact done',date:'Oct 2025'}],checks:[1,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:50,name:'The Oak Barrel',locs:1,contact:'—',phone:'0292643022',email:'',type:'Liquor retailer',status:'nocontact',stage:0,notes:'No contact made yet',next:'Make first contact',activity:[],checks:[0,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:51,name:'The Settlement Hotel Cranbourne',locs:1,contact:'—',phone:'',email:'',type:'Hotel / pub group',status:'nocontact',stage:0,notes:'No contact made yet',next:'Make first contact',activity:[],checks:[0,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:52,name:'Private Collectors',locs:0,contact:'—',phone:'',email:'',type:'Private collector',status:'nocontact',stage:0,notes:'Category to target — identify individuals',next:'Identify and approach high-value collectors',activity:[],checks:[0,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:53,name:'David Boggan — The Adelaide Club',locs:1,contact:'David Boggan',phone:'',email:'generalmanager@adelaide-club.asn.au',type:'Members club',status:'nocontact',stage:0,notes:'Premium private members club — high-value cellar',next:'First contact needed — premium positioning',activity:[],checks:[0,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:54,name:'Keilor Hotel',locs:1,contact:'Ray Dodd (deceased)',phone:'0419301765',email:'',type:'Hotel / pub group',status:'hold',stage:1,notes:'ON HOLD — Ray Dodd passed away. Need to find new contact.',next:'Find new decision maker — Ray Dodd passed away. Another text sent.',activity:[{text:'Initial contact with Ray Dodd',date:'Jul 2025'},{text:'Ray Dodd passed away — on hold',date:'Sep 2025'}],checks:[1,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:55,name:'Melbourne Wine House',locs:1,contact:'—',phone:'',email:'',type:'Liquor retailer',status:'closed',stage:0,notes:'Business closing down — do not pursue',next:'N/A — business closing',activity:[{text:'Confirmed — business closing down',date:'Oct 2025'}],checks:[0,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:56,name:'M.Chapoutier — Heathcote',locs:1,contact:'—',phone:'',email:'',type:'Winery',status:'closed',stage:0,notes:'Declined — not moving forward',next:'N/A — declined',activity:[{text:'Messaged back — do not want to proceed',date:'Oct 2025'}],checks:[0,0,0,0,0,0,0,0,0,0,0,0]},
+  {id:57,name:'David Leslie — Ellerston Capital',locs:1,contact:'David Leslie',phone:'',email:'dleslie@ellerstoncapital.com',type:'Private collector',status:'nocontact',stage:0,notes:'High-net-worth investment firm — likely serious collector',next:'First contact — premium positioning',activity:[],checks:[0,0,0,0,0,0,0,0,0,0,0,0]},
+];
+
+const STATUS_META = {
+  live:{label:'Live',color:'#5db87a',cls:'pill-live'},
+  hot:{label:'Hot',color:'#c9a84c',cls:'pill-hot'},
+  progressing:{label:'Progressing',color:'#5a9fd4',cls:'pill-progressing'},
+  contacted:{label:'Contacted',color:'#d4945a',cls:'pill-contacted'},
+  nocontact:{label:'No contact',color:'#5a5248',cls:'pill-nocontact'},
+  hold:{label:'On hold',color:'#e05252',cls:'pill-hold'},
+  closed:{label:'Closed',color:'#333',cls:'pill-closed'},
+};
+
+let activeFilter = 'all';
+let activeId = null;
+let currentView = 'detail';
+
+// ─── RENDER SIDEBAR ──────────────────────────────────────────────────────────
+function renderSidebar() {
+  const srch = document.getElementById('search-input').value.toLowerCase();
+  const list = document.getElementById('vendor-list');
+  const filtered = vendors.filter(v => {
+    if (activeFilter !== 'all' && v.status !== activeFilter) return false;
+    if (srch && !v.name.toLowerCase().includes(srch) && !v.contact.toLowerCase().includes(srch)) return false;
+    return true;
+  });
+
+  list.innerHTML = filtered.map(v => {
+    const sm = STATUS_META[v.status] || STATUS_META.nocontact;
+    return `<div class="vendor-item ${v.id === activeId ? 'active' : ''}" onclick="selectVendor(${v.id})">
+      <div class="vendor-item-name">${v.name}</div>
+      <div class="vendor-item-meta">
+        <span class="pill ${sm.cls}" style="font-size:9px;padding:1px 6px">${sm.label}</span>
+        <span class="vendor-item-locs">${v.locs >= 2400 ? '2.4k' : v.locs} loc${v.locs !== 1 ? 's' : ''}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Update counts
+  const statuses = ['live','hot','progressing','contacted','nocontact','hold','closed'];
+  document.getElementById('count-all').textContent = vendors.length;
+  statuses.forEach(s => {
+    const el = document.getElementById('count-' + s);
+    if (el) el.textContent = vendors.filter(v => v.status === s).length;
+  });
+}
+
+// ─── SELECT VENDOR ────────────────────────────────────────────────────────────
+function selectVendor(id) {
+  activeId = id;
+  currentView = 'detail';
+  document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.view-btn')[0].classList.add('active');
+  renderSidebar();
+  renderDetail();
+}
+
+// ─── RENDER DETAIL ────────────────────────────────────────────────────────────
+function renderDetail() {
+  const v = vendors.find(x => x.id === activeId);
+  document.getElementById('empty-state').style.display = v ? 'none' : 'flex';
+  document.getElementById('detail-panel').style.display = v ? 'block' : 'none';
+  document.getElementById('kanban-panel').style.display = 'none';
+  document.getElementById('overview-panel').style.display = 'none';
+  if (!v) return;
+
+  const sm = STATUS_META[v.status] || STATUS_META.nocontact;
+  const stageIdx = Math.min(v.stage, STAGES.length - 1);
+  const progress = Math.round(((v.checks || []).filter(Boolean).length / ACQUISITION_CHECKLIST.length) * 100);
+
+  const stageHTML = STAGES.map((s, i) => {
+    const cls = i < stageIdx ? 'completed' : i === stageIdx ? 'active' : '';
+    return `<div class="stage-step ${cls}" onclick="setStage(${v.id},${i})">
+      <div class="stage-num">${i < stageIdx ? '✓' : (i + 1)}</div>
+      <div class="stage-label">${s}</div>
+    </div>`;
+  }).join('');
+
+  const checksHTML = ACQUISITION_CHECKLIST.map((c, i) => {
+    const done = v.checks && v.checks[i];
+    return `<div class="check-item ${done ? 'done' : ''}" onclick="toggleCheck(${v.id},${i})">
+      <div class="check-box">${done ? '✓' : ''}</div>
+      <div class="check-text">${c}</div>
+    </div>`;
+  }).join('');
+
+  const activityHTML = (v.activity || []).slice().reverse().map(a =>
+    `<div class="activity-entry">
+      <div class="activity-dot"></div>
+      <div class="activity-content">
+        <div class="activity-text">${a.text}</div>
+        <div class="activity-date">${a.date}</div>
+      </div>
+    </div>`
+  ).join('') || '<div style="color:var(--text3);font-size:13px;padding:8px 0">No activity logged yet</div>';
+
+  document.getElementById('detail-panel').innerHTML = `
+  <div class="detail-panel">
+    <div class="detail-header">
+      <div>
+        <div class="detail-title">${v.name}</div>
+        <div class="detail-subtitle">${v.type} &nbsp;·&nbsp; ${v.locs >= 2400 ? '2,400+' : v.locs} location${v.locs !== 1 ? 's' : ''}</div>
+      </div>
+      <div class="detail-actions">
+        <span class="pill ${sm.cls}" style="font-size:12px;padding:5px 12px">${sm.label}</span>
+        <button class="btn btn-sm" onclick="deleteVendor(${v.id})">Remove</button>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Locations</div>
+        <div class="stat-val">${v.locs >= 2400 ? '2.4k' : v.locs}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Pipeline stage</div>
+        <div class="stat-val">${stageIdx + 1}<span style="font-size:14px;color:var(--text3)">/${STAGES.length}</span></div>
+        <div class="stat-sub">${STAGES[stageIdx]}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Acquisition progress</div>
+        <div class="stat-val">${progress}<span style="font-size:14px;color:var(--text3)">%</span></div>
+        <div class="stat-sub">${(v.checks||[]).filter(Boolean).length} of 12 steps done</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Type</div>
+        <div class="stat-val" style="font-size:14px;font-family:'Outfit',sans-serif;font-weight:500;padding-top:4px">${v.type}</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Pipeline stage</div>
+      <div class="stage-track">${stageHTML}</div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Contact details</div>
+      <div class="fields-grid fields-grid-3">
+        <div class="field"><div class="field-label">Contact name</div><input class="field-val" value="${v.contact||''}" onchange="updateField(${v.id},'contact',this.value)" placeholder="Name"></div>
+        <div class="field"><div class="field-label">Phone</div><input class="field-val" value="${v.phone||''}" onchange="updateField(${v.id},'phone',this.value)" placeholder="04xx xxx xxx"></div>
+        <div class="field"><div class="field-label">Email</div><input class="field-val" value="${v.email||''}" onchange="updateField(${v.id},'email',this.value)" placeholder="email@domain.com.au"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Status & next action</div>
+      <div class="fields-grid">
+        <div class="field"><div class="field-label">Current status</div>
+          <select class="field-val" onchange="updateStatus(${v.id},this.value)">
+            ${Object.entries(STATUS_META).map(([k,s]) => `<option value="${k}" ${v.status===k?'selected':''}>${s.label}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field"><div class="field-label">Locations count</div><input class="field-val" type="number" value="${v.locs}" onchange="updateField(${v.id},'locs',parseInt(this.value)||0)"></div>
+      </div>
+      <div class="field" style="margin-top:12px"><div class="field-label">Next step / action required</div>
+        <textarea class="field-val" onchange="updateField(${v.id},'next',this.value)">${v.next||''}</textarea>
+      </div>
+      <div class="field" style="margin-top:12px"><div class="field-label">Notes</div>
+        <textarea class="field-val" onchange="updateField(${v.id},'notes',this.value)">${v.notes||''}</textarea>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Acquisition checklist</div>
+      <div class="checklist">${checksHTML}</div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Activity log</div>
+      <div class="activity-input-row" style="margin-bottom:12px">
+        <input class="activity-input" id="act-input-${v.id}" placeholder="Log a call, meeting, email or update...">
+        <button class="btn btn-sm btn-gold" onclick="logActivity(${v.id})">Log</button>
+      </div>
+      <div class="activity-log">${activityHTML}</div>
+    </div>
+  </div>`;
+}
+
+// ─── KANBAN ──────────────────────────────────────────────────────────────────
+function renderKanban() {
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('detail-panel').style.display = 'none';
+  document.getElementById('overview-panel').style.display = 'none';
+  const panel = document.getElementById('kanban-panel');
+  panel.style.display = 'block';
+
+  const cols = [
+    {key:'live',label:'Live',color:'#5db87a'},
+    {key:'hot',label:'Hot — close now',color:'#c9a84c'},
+    {key:'progressing',label:'Progressing',color:'#5a9fd4'},
+    {key:'contacted',label:'Contacted',color:'#d4945a'},
+    {key:'nocontact',label:'No contact',color:'#5a5248'},
+    {key:'hold',label:'On hold',color:'#e05252'},
+    {key:'closed',label:'Closed',color:'#444'},
+  ];
+
+  panel.innerHTML = `<div style="margin-bottom:20px">
+    <h2 style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--text);margin-bottom:4px">Pipeline Kanban</h2>
+    <p style="font-size:13px;color:var(--text3)">Click any card to open vendor detail</p>
+  </div>
+  <div class="kanban">${cols.map(col => {
+    const vs = vendors.filter(v => v.status === col.key);
+    return `<div class="kanban-col">
+      <div class="kanban-header">
+        <div class="kanban-title" style="color:${col.color}">${col.label}</div>
+        <div class="kanban-count">${vs.length}</div>
+      </div>
+      <div class="kanban-cards">${vs.map(v => `
+        <div class="kanban-card" onclick="selectVendor(${v.id})">
+          <div class="kanban-card-name">${v.name}</div>
+          <div class="kanban-card-meta">
+            <span class="kanban-card-locs">${v.locs >= 2400 ? '2,400+' : v.locs} loc${v.locs!==1?'s':''}</span>
+            ${v.contact && v.contact !== '—' ? ` · ${v.contact.split('/')[0].split('&')[0].trim()}` : ''}
+          </div>
+        </div>`).join('') || `<div style="font-size:12px;color:var(--text3);padding:8px 0">None</div>`}
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ─── OVERVIEW ────────────────────────────────────────────────────────────────
+function renderOverview() {
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('detail-panel').style.display = 'none';
+  document.getElementById('kanban-panel').style.display = 'none';
+  const panel = document.getElementById('overview-panel');
+  panel.style.display = 'block';
+
+  const live = vendors.filter(v=>v.status==='live');
+  const hot = vendors.filter(v=>v.status==='hot');
+  const totalLocs = vendors.filter(v=>!['closed'].includes(v.status)).reduce((a,v)=>a+(v.locs||0),0);
+  const liveLocs = live.reduce((a,v)=>a+(v.locs||0),0);
+  const hotLocs = hot.reduce((a,v)=>a+(v.locs||0),0);
+
+  panel.innerHTML = `
+  <div style="margin-bottom:24px">
+    <h2 style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--text);margin-bottom:4px">Pipeline Overview</h2>
+    <div class="gold-line"></div>
+  </div>
+  <div class="overview-grid">
+    <div class="overview-card">
+      <div class="overview-card-num" style="color:var(--gold)">${vendors.filter(v=>v.status!=='closed').length}</div>
+      <div class="overview-card-label">Active prospects</div>
+      <div class="overview-card-sub">${totalLocs.toLocaleString()} total potential locations</div>
+    </div>
+    <div class="overview-card">
+      <div class="overview-card-num" style="color:var(--green)">${live.length}</div>
+      <div class="overview-card-label">Live vendors</div>
+      <div class="overview-card-sub">${liveLocs} locations active on platform</div>
+    </div>
+    <div class="overview-card">
+      <div class="overview-card-num" style="color:var(--gold)">${hot.length}</div>
+      <div class="overview-card-label">Hot — close now</div>
+      <div class="overview-card-sub">${hotLocs.toLocaleString()} locations ready to close</div>
+    </div>
+    <div class="overview-card">
+      <div class="overview-card-num" style="color:var(--blue)">${vendors.filter(v=>v.status==='progressing').length}</div>
+      <div class="overview-card-label">In progress</div>
+      <div class="overview-card-sub">Active conversations underway</div>
+    </div>
+    <div class="overview-card">
+      <div class="overview-card-num" style="color:var(--amber)">${vendors.filter(v=>v.status==='contacted').length}</div>
+      <div class="overview-card-label">Contacted</div>
+      <div class="overview-card-sub">Awaiting response or follow-up</div>
+    </div>
+    <div class="overview-card">
+      <div class="overview-card-num" style="color:var(--text3)">${vendors.filter(v=>v.status==='nocontact').length}</div>
+      <div class="overview-card-label">Not yet contacted</div>
+      <div class="overview-card-sub">Ready for first outreach</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Hot pipeline — action required now</div>
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead><tr style="border-bottom:1px solid var(--border)">
+        <th style="text-align:left;padding:8px 10px;color:var(--text3);font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase">Vendor</th>
+        <th style="text-align:left;padding:8px 10px;color:var(--text3);font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase">Contact</th>
+        <th style="text-align:left;padding:8px 10px;color:var(--text3);font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase">Locs</th>
+        <th style="text-align:left;padding:8px 10px;color:var(--text3);font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase">Next step</th>
+      </tr></thead>
+      <tbody>${hot.concat(live).map(v=>`
+        <tr style="border-bottom:1px solid var(--border);cursor:pointer" onclick="selectVendor(${v.id})">
+          <td style="padding:10px 10px;font-weight:500">${v.name}</td>
+          <td style="padding:10px 10px;color:var(--text2)">${v.contact||'—'}</td>
+          <td style="padding:10px 10px;font-family:'DM Mono',monospace;color:var(--text2)">${v.locs>=2400?'2,400+':v.locs}</td>
+          <td style="padding:10px 10px;color:var(--text2);font-size:12px">${v.next}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+// ─── ACTIONS ─────────────────────────────────────────────────────────────────
+function updateField(id, key, val) {
+  const v = vendors.find(x => x.id === id);
+  if (v) { v[key] = val; renderSidebar(); }
+}
+
+function updateStatus(id, status) {
+  const v = vendors.find(x => x.id === id);
+  if (v) { v.status = status; renderSidebar(); renderDetail(); }
+}
+
+function setStage(id, stage) {
+  const v = vendors.find(x => x.id === id);
+  if (v) { v.stage = stage; renderDetail(); }
+}
+
+function toggleCheck(id, idx) {
+  const v = vendors.find(x => x.id === id);
+  if (v) { if (!v.checks) v.checks = new Array(12).fill(0); v.checks[idx] = v.checks[idx] ? 0 : 1; renderDetail(); }
+}
+
+function logActivity(id) {
+  const v = vendors.find(x => x.id === id);
+  const input = document.getElementById('act-input-' + id);
+  if (v && input && input.value.trim()) {
+    const now = new Date();
+    const date = now.toLocaleDateString('en-AU', {month:'short', year:'numeric'});
+    v.activity.push({text: input.value.trim(), date});
+    input.value = '';
+    renderDetail();
+  }
+}
+
+function deleteVendor(id) {
+  if (!confirm('Remove this vendor from the pipeline?')) return;
+  vendors = vendors.filter(v => v.id !== id);
+  activeId = null;
+  renderSidebar();
+  renderDetail();
+}
+
+function setFilter(f, el) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderSidebar();
+}
+
+function filterList() { renderSidebar(); }
+
+function setView(v, btn) {
+  currentView = v;
+  document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (v === 'detail') renderDetail();
+  else if (v === 'kanban') renderKanban();
+  else renderOverview();
+}
+
+function openAddModal() { document.getElementById('add-modal').classList.add('open'); }
+function closeAddModal() { document.getElementById('add-modal').classList.remove('open'); }
+
+function addVendor() {
+  const name = document.getElementById('new-name').value.trim();
+  if (!name) { alert('Vendor name is required'); return; }
+  const newV = {
+    id: Date.now(),
+    name,
+    locs: parseInt(document.getElementById('new-locs').value) || 1,
+    contact: document.getElementById('new-contact').value,
+    phone: document.getElementById('new-phone').value,
+    email: document.getElementById('new-email').value,
+    type: document.getElementById('new-type').value,
+    status: 'nocontact',
+    stage: 0,
+    notes: document.getElementById('new-notes').value,
+    next: 'Make first contact',
+    activity: [],
+    checks: new Array(12).fill(0),
+  };
+  vendors.unshift(newV);
+  closeAddModal();
+  ['new-name','new-locs','new-contact','new-phone','new-email','new-notes'].forEach(id => document.getElementById(id).value = '');
+  renderSidebar();
+  selectVendor(newV.id);
+}
+
+function exportCSV() {
+  const rows = ['Vendor,Type,Locations,Contact,Phone,Email,Status,Stage,Next Step,Notes'];
+  vendors.forEach(v => {
+    rows.push([v.name,v.type,v.locs,v.contact,v.phone,v.email,v.status,STAGES[v.stage]||'',v.next,v.notes].map(x=>`"${(x||'').toString().replace(/"/g,'""')}"`).join(','));
+  });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([rows.join('\n')], {type:'text/csv'}));
+  a.download = 'WineRelique_Pipeline_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+renderSidebar();
+</script>
+</body>
+</html>
